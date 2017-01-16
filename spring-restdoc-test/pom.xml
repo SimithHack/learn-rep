@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.xie.learn</groupId>
+    <artifactId>spring-rest-doc</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.3.RELEASE</version>
+    </parent>
+    <!-- 定义最终生成doc的输出路径 -->
+    <properties>
+        <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
+    </properties>
+    <repositories>
+        <repository>
+            <id>repository.spring.release</id>
+            <name>Spring GA Repository</name>
+            <url>http://repo.spring.io/release</url>
+        </repository>
+        <repository>
+            <id>ibiblio</id>
+            <name>Ibiblio Maven Repository</name>
+            <url>http://www.ibiblio.org/maven2</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>maven</id>
+            <name>Slowly office site</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- spring-boot-test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+        <!-- 如果使用Assured，可以使用spring-restdocs-restassured替代 -->
+        <dependency>
+            <groupId>org.springframework.restdocs</groupId>
+            <artifactId>spring-restdocs-mockmvc</artifactId>
+            <version>1.1.2.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+        <!-- HTML渲染 -->
+        <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj</artifactId>
+            <version>1.5.4.1</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- 添加surefire插件，包含Documents.java文档 -->
+            <!--
+                此插件在maven的test生命周期中使用，它用两种文件格式输出测试报表
+                Plain text files (*.txt)
+                XML files (*.xml)
+                these files are generated at ${basedir}/target/surefire-reports
+                如果想要HTML格式的报表，可以参考http://maven.apache.org/plugins/maven-surefire-report-plugin/
+                此插件的详细使用介绍http://maven.apache.org/components/surefire/maven-surefire-plugin/
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <!-- 添加Asciidoctor插件 -->
+            <!--
+                使用手册http://asciidoctor.org/docs/user-manual/
+                用来产生和渲染文档，它有很多语法，属性和函数
+                它是一个快速的文本处理工具，用以将AsciiDoc文档内容转换成HTML5,PDF,EPUB3等文件
+                用Rubby编写和发布
+            -->
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <id>generate-docs</id>
+                        <!-- 文档和包一起发布 -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>html</backend>
+                            <doctype>book</doctype>
+                            <attributes>
+                                <!-- 用以产生文档的源 -->
+                                <snippets>${snippetsDirectory}</snippets>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 将文档打包到jar文件中，比如将其作为spring-boot应用静态页面发布 -->
+            <plugin>
+                <!--
+                    resource插件必须在Asciidoctor插件之后定义
+                    因为他们绑定到同一个maven phase (prepare-package)，并且
+                    必须要做文档内容产生之后
+                -->
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 将文档内容拷贝到staic/docs目录中 -->
+                            <outputDirectory>
+                                ${project.build.outputDirectory}/static/docs
+                            </outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>
+                                        ${project.build.directory}/generated-docs
+                                    </directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
