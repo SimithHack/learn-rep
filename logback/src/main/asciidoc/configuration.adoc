@@ -1,0 +1,44 @@
+= logback配置说明
+@xiefq;
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+= 介绍
+* Logback可以**编程**的方式使用，也可以**XML**，**_Groovy_**语法方式使用。
+* log4j的用户也可以使用 #PropertiesTranslator# **web**应用程序将其转换成logback.xml
+* logback配置自己的步骤
+** logback.groovy
+** logback-text.xml
+** logback.xml
+** 在META-INF\services\ch.qos.logback.classic.spi.Configurator类路径下寻找实现了com.qos.logback.classic.spi.Configurator接口的类。
+** 使用 _BasicConfigurator_ 配置自己（输出日志到 #console# )
+
+= 配置详细
+[started]
+* 可以使用下面方式指定logback的默认配置文件位置
+[source,java]
+----
+java -Dlogback.configurationFile=/path/to/config.xml chapters.configuration.MyApp1
+----
+NOTE: 配置文件扩展名后缀必须是**xml**或者**groovy**
+
+* 可以让logback-classic自动扫描配置文件的改动，然后自动重新配置
+[source,xml]
+----
+<configuration scan="true">
+  ...
+</configuration>
+----
+NOTE: 默认情况下，logback-classic是每分钟扫描一次，可以指定扫描间隔，不指定单位，默认为milliseconds
+[source,xml]
+----
+<configuration scan="true" scanPeriod="30 seconds" >
+  ...
+</configuration>
+----
+NOTE: logback使用ReconfigureOnChangeFilter来实现自动重新配置，它是在发起日志请求时候触发调用 +
+而不管你的日志级别是多少，为了避免性能开销，可以配置发起多少次日志请求后调用一次
