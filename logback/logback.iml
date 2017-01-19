@@ -59,7 +59,6 @@
     <orderEntry type="library" name="Maven: org.asciidoctor:asciidoctorj:1.5.4.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.jruby:jruby-complete:1.7.25" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: com.beust:jcommander:1.35" level="project" />
-    <orderEntry type="library" name="Maven: org.webjars.npm:highlight.js:9.9.0" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.1.8" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.22" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.1.8" level="project" />
