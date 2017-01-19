@@ -42,3 +42,28 @@ NOTE: 默认情况下，logback-classic是每分钟扫描一次，可以指定�
 ----
 NOTE: logback使用ReconfigureOnChangeFilter来实现自动重新配置，它是在发起日志请求时候触发调用 +
 而不管你的日志级别是多少，为了避免性能开销，可以配置发起多少次日志请求后调用一次
+
+== 定义变量
+=== 变量类型
+* **local**:只是局部可见
+* **context**:持续到整个context，或者被手动清楚
+* **system**:注入到jvm中，同jvm共存亡
+[source,xml]
+----
+<property *_scope_* ="context|local|system"/>
+----
+icon:tags[]例子
+[source,xml]
+----
+<configuration>
+  <!-- nodeId变量存活于整个context -->
+  <property scope="context" name="nodeId" value="firstNode" />
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>/opt/${nodeId}/myApp.log</file>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+  ...
+</configuration>
+----
