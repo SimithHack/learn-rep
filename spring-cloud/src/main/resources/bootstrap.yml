@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: xiefq
+  cloud:
+    config:
+      #配置服务器的git库
+      #也可以自定义属性源，PropertySourceLocator这种类型的bean
+      uri: https://github.com/SimithHack/config-repo
