@@ -1,0 +1,10 @@
+server:
+  port: 8888
+spring:
+  config:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/SimithHack/config-repo #file:///Users/xfq/Documents/workspace/myself/config-repo #https://github.com/SimithHack
