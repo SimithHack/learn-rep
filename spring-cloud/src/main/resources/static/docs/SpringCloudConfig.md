@@ -115,3 +115,91 @@ spring:
         overrides: #把这些属性全部都放到这里就够了
           foo: bar
 ```
+* 但是，如果客户端配置了spring.cloud.config.overrideNone=true，还是可以覆盖的
+
+## Health 指标
+配置服务器自带一个健康监控指标，用来检查EnvironmentRepository是否正常运作。
+默认监控{application}=app，{profile}=default，{label}=master的仓库运作，可以如下配置
+```
+spring:
+  cloud:
+    config:
+      server:
+        health: #配置监控的仓库
+          repositories:
+            myservice:
+              label: mylabel
+            myservice-dev:
+              name: myservice
+              profiles: development
+```
+* 通过spring.cloud.config.server.health.enabled=false可以禁用健康监控指标
+
+## 安全
+使用oauth2协议保护，spring-security等等，都随意
+
+* 启用basic认证保护，添加spring-boot-starter-security到类路径
+> 默认用户为user,密码为随机密码，通过控制台可以查看 .
+> security.user.password 来配置使用的密码 **可加密** .
+
+# 加密和解密
+jvm需要安装 full-length JCE
+
+* 属性值使用 "{cipher}" 前缀，表示是加密的，如果密文不可解密，此密文值会被 "invalid" 代替
+```
+spring:
+  datasource:
+    username: dbuser
+    password: '{cipher}FKSAJDFGYOS8F7GLHAKERGFHLSAJ'
+```
+* 配置服务器还提供了如下工具
+>/encrypt 加密属性值 .
+>/decrypt 解密属性值 .
+>要确保这两个节点受安全保护 .
+>这两个节点还支持 "/*/{name}/{profiles}的方式，为不同的应用，不同的profile使用不同的key，当然自己要实现 @Bean **TextEncryptorLocator**
+
+* 需要安装key (应该是密钥之类的东西)
+
+## 加密key的管理
+可使用对称加密（共享key）和非对称RSA，后者安全，但是前者配置容易。
+### 对称加密key
+* encrypt.key=xxx
+* 也可在使用系统环境变量ENCRYPT_KEY
+* 一定要升级JCE http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html
+### RSA 密钥对
+* key是 PEM编码的文本值，把它配置到encrypt.key下
+* 使用keystore (jdk的keytool)
+>encrypt.keyStore.location 资源路径 .
+>encrypt.keyStore.password 解锁keystore键值 .
+>encrypt.keyStore.alias 标识使用keystore中哪一个键 .
+>公钥加密，私钥解密，通常只在服务器上配置公钥用来加密，客户端使用私钥解密 .
+### 创建测试keystore
+* 生成keystore
+```
+$ keytool -genkeypair -alias mytestkey -keyalg RSA \
+  -dname "CN=Web Server,OU=Unit,O=Organization,L=City,S=State,C=US" \
+  -keypass changeme -keystore server.jks -storepass letmein
+```
+* 配置
+```
+encrypt:
+  keyStore:
+    location: classpath:/server.jks
+    password: letmein
+    alias: mytestkey
+    secret: changeme
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

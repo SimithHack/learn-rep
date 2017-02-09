@@ -8,3 +8,12 @@ spring:
       server:
         git:
           uri: https://github.com/SimithHack/config-repo #file:///Users/xfq/Documents/workspace/myself/config-repo #https://github.com/SimithHack
+        # 启用健康监控指标
+        health:
+          repositories:
+            default:
+              profiles: test
+              name: configclient
+# 配置对称加密key
+encrypt:
+  key: "xie"

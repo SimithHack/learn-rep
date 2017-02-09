@@ -36,4 +36,14 @@
     <root level="off">
         <appender-ref ref="STDOUT" />
     </root>
+    <!--
+        定义变量on the fly
+        设置好PropertyDefiner的实现
+    -->
+    <define name="varOntheFlyLevel" class="com.xie.learn.logback.MyPropertyDefiner">
+        <age>11</age>
+    </define>
+    <logger name="com.xie.learn.logback.DefineVarOntheFly" level="${varOntheFlyLevel}" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 </configuration>
