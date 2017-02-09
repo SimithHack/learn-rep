@@ -173,6 +173,7 @@ spring:
 >encrypt.keyStore.password 解锁keystore键值 .
 >encrypt.keyStore.alias 标识使用keystore中哪一个键 .
 >公钥加密，私钥解密，通常只在服务器上配置公钥用来加密，客户端使用私钥解密 .
+
 ### 创建测试keystore
 * 生成keystore
 ```
