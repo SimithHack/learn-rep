@@ -75,3 +75,12 @@ Binding b = BindingBuilder.bind(someQueue).to(someTopicExchange).with("foo.*");
 * Binding只是保存了绑定关系的数据，它并没被激活，它可以被AmqpAdmin激活。
 * Binding实例亦可以通过@Bean的方式定义。
 * AmqpTemplate是定义在核心包里，作为AMQP消息的主要组件。
+
+## Connection 连接
+RabbitMQ 管理连接的核心接口是ConnectionFactory，它主要用来提供Connection实例。目前唯一实现为
+CachingConnectionFactory，它只为整个应用程序建立一个单独的Connection代理。连接的分时工作得益于AMQP
+本身的“channel”方式的消息通信。就好比在JMS中的connection和session的关系。Connection实例提供一个
+createChannel的方法。CachingConnectionFactory可以把创建出来的channel缓存起来，并且按照chanel是否
+是事务的熟悉来分别创建缓存区。
+* 创建CachingConnectionFactory的时候可以通过构造方法制定hostname,username,pasword
+* 可以调用setChannelCacheSize设置缓存channel的大小。默认为25个。
