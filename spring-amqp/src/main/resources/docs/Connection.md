@@ -114,3 +114,40 @@ public class MyService {
 >2 如2果表达式不为null，但是没有lookupKey相匹配的ConnectionFactory，并且此时AbstractRoutingConnectionFactory的lenientFallback配置为false，那么情况如 **1**。
 
 >3 否则（1，2都不满足）则有determineCurrentLookupKey()方法决定路由逻辑。但是如果此时lenientFallback=false，抛出IllegalStateException异常。
+
+### LocalizedQueueConnectionFactory 优先本地连接仓库
+处于性能考虑，最好连接到master queue所在的物理消息代理机上。但是CachingConnectionFactory可以配置多个地址，客户端按顺序尝试连接。
+LocalizedQueueConnectionFactory使用管理插件提供的API决定master queue所在的物理机。然后创建一个CachingConnectionFactory连接
+那台物理机。LocalizedQueueConnectionFactory会默认配置默认的CachingConnectionFactory以防止master queue的物理机无法找到。
+* 每个节点需要启用管理插件
+* 只对那些配置单个queue的容器有效
+* LocalizedQueueConnectionFactory是一个RoutingConnectionFactory
+
+```
+@Autowired
+private RabbitProperties props;
+
+private final String[] adminUris = { "http://host1:15672", "http://host2:15672" };
+
+private final String[] nodes = { "rabbit@host1", "rabbit@host2" };
+
+@Bean
+public ConnectionFactory defaultConnectionFactory() {
+    CachingConnectionFactory cf = new CachingConnectionFactory();
+    cf.setAddresses(this.props.getAddresses());
+    cf.setUsername(this.props.getUsername());
+    cf.setPassword(this.props.getPassword());
+    cf.setVirtualHost(this.props.getVirtualHost());
+    return cf;
+}
+
+@Bean
+public ConnectionFactory queueAffinityCF(
+        @Qualifier("defaultConnectionFactory") ConnectionFactory defaultCF) {
+    return new LocalizedQueueConnectionFactory(defaultCF,
+            StringUtils.commaDelimitedListToStringArray(this.props.getAddresses()),
+            this.adminUris, this.nodes,
+            this.props.getVirtualHost(), this.props.getUsername(), this.props.getPassword(),
+            false, null);
+}
+```
