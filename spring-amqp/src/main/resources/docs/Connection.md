@@ -144,10 +144,81 @@ public ConnectionFactory defaultConnectionFactory() {
 @Bean
 public ConnectionFactory queueAffinityCF(
         @Qualifier("defaultConnectionFactory") ConnectionFactory defaultCF) {
+    //注意，addresses,adminUris和nodes必须是一一对应的，因为数组相同位置共同决定着一台节点的连接地址
     return new LocalizedQueueConnectionFactory(defaultCF,
             StringUtils.commaDelimitedListToStringArray(this.props.getAddresses()),
             this.adminUris, this.nodes,
             this.props.getVirtualHost(), this.props.getUsername(), this.props.getPassword(),
             false, null);
 }
+```
+
+### 消息发布方确认和返回
+设置CachingConnectionFactory的publsherConfirms和publisherReturns属性为true可以开启消息的确认和返回支持。
+当这两个属性配置后，被工厂创建的Channel会包裹在一个PublisherCallbackChannel里边，客户端可以向此channel注册
+PublisherCallbackChannel.Listener。PublisherCallbackChannel自己实现了将确认和返回消息路由到恰当的监听器的路基。
+
+### Connection 和 Channel监听器
+ConnectionFactory支持ConnectionListener和ChannelListener，这可以让它在获取有关连接和channel方面的事件通知。
+
+```
+@FunctionalInterface
+public interface ConnectionListener {
+    void onCreate(Connection connection);
+    default void onClose(Connection connection) {}
+    default void onShutDown(ShutdownSignalException signal) {}
+}
+@FunctionalInterface
+public interface ChannelListener {
+    void onCreate(Channel channel, boolean transactional);
+    default void onShutDown(ShutdownSignalException signal) {}
+}
+```
+
+### 日志记录
+CachingConnectionFactory使用默认的策略记录channel闭包的日志
+
+* 正常关闭的channel不记录日志
+* 如果channel的关闭是因为queue的声明失败产生的，日志以debug级别记录。
+* 如果channel的关闭是因为 basic.consume 命令因为互斥的consume条件被拒绝，日志以INFO级别记录。
+* 所有其他的channel关闭都记录ERROR日志级别。
+
+### 实时缓存配置属性
+从1.6开始，CachingConnectionFactory提供了getCacheProperties()方法用来在生产环境里优化缓存。
+
+**属性列表**
+
+CacheMode.CHANNEL
+
+| 属性|含义|
+| :--| :--|
+| channelCacheSize|允许可空闲的最大channel数|
+| localPort|连接的本地端口|
+|idleChannelsTx|支持事务的channel空闲数量|
+|idleChannelsNotTx|不支持事务的最大channel空闲数量|
+|idleChannelsTxHighWater|事务channel允许同时空闲的最大数量|
+|idleChannelsNotTxHighWater|非事务channel允许同时空闲的最大数量|
+
+CacheMode.CONNECTION
+
+|属性|含义|
+|:-|:-|
+|openConnections|连接到broker的connection对象的数量|
+|channelCacheSize|当前配置锁允许的最大空闲channel数量|
+|connectionCacheSize|当前配置所允许的最大空闲connection数量|
+|idleConnections|当前空闲的连接数|
+|idleConnectionHighWater|共存的空闲connection最大数|
+|idleChannelsTx:<localhost>|本次Connection下支持事务的空闲channel数|
+|idleChannelsNotTx:<localPort>|...|
+|idleChannelsTxHighWater|..concurrently...|
+|idleChannelsNotTxHighWater|...concurrently...|
+
+### RabbitMQ自动连接和拓扑恢复
+spring AMQP从一开始就支持connection和channel在broker发生异常时自动恢复的机制。当时rabbitmq-client 还不支持这个功能
+但是从4.0.x，rabbitmq-client自动恢复功能默认是开启的。所以可通过将connectionFactory的automaticRecoveryEnabled配置
+为false从而使用client的自动恢复机制。但是如果要兼容，还是建议不关闭此功能。
+
+### 添加自定义客户端连接属性
+```
+connectionFactory.getRabbitConnectionFactory().getClientProperties().put("foo", "bar");
 ```
