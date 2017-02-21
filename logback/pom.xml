@@ -63,6 +63,15 @@
             <artifactId>asciidoctorj</artifactId>
             <version>1.5.4.1</version>
         </dependency>
+        <!-- 句法高亮 -->
+        <!-- https://mvnrepository.com/artifact/org.webjars.npm/highlight.js -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>highlight.js</artifactId>
+            <version>9.9.0</version>
+        </dependency>
+
+
         <!-- logback配置 -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

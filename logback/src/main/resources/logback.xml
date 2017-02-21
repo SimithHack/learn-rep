@@ -13,10 +13,37 @@
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="debug">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logback.log</file>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- 不配置appender 它就会从父logger里边查找-->
+    <logger name="com.xie.learn.logback.AppenderHierarchy" level="info"/>
+    <!-- 重复输出到console -->
+    <logger name="com.xie.learn.logback.DuplicateLogTest" level="info">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <!-- 将additivity设置为false,则日志请求不会继续往下传播 因此root是看不到的 -->
+    <logger name="com.xie.learn.logback.AdditiveAttrTest" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
+    <logger name="com.xie.learn.logback.ContextNameTest" level="INFO"/>
+    <root level="off">
         <appender-ref ref="STDOUT" />
     </root>
+    <!--
+        定义变量on the fly
+        设置好PropertyDefiner的实现
+    -->
+    <define name="varOntheFlyLevel" class="com.xie.learn.logback.MyPropertyDefiner">
+        <age>11</age>
+    </define>
+    <logger name="com.xie.learn.logback.DefineVarOntheFly" level="${varOntheFlyLevel}" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 </configuration>

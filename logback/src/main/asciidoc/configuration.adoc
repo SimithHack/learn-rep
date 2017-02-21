@@ -42,3 +42,122 @@ NOTE: 默认情况下，logback-classic是每分钟扫描一次，可以指定�
 ----
 NOTE: logback使用ReconfigureOnChangeFilter来实现自动重新配置，它是在发起日志请求时候触发调用 +
 而不管你的日志级别是多少，为了避免性能开销，可以配置发起多少次日志请求后调用一次
+
+== 定义变量
+=== 变量类型
+* **local**:只是局部可见
+* **context**:持续到整个context，或者被手动清楚
+* **system**:注入到jvm中，同jvm共存亡
+[source,xml]
+----
+<property **_scope_** ="context|local|system"/>
+----
+icon:tags[]例子
+[source,xml]
+----
+<configuration>
+  <!-- nodeId变量存活于整个context -->
+  <property scope="context" name="nodeId" value="firstNode" />
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>/opt/${nodeId}/myApp.log</file>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+  ...
+</configuration>
+----
+
+== 定义实时变量
+[.lead]
+PropertyDefiner
+
+[source,xml]
+----
+<!--
+    定义变量on the fly
+    设置好PropertyDefiner的实现
+-->
+<define name="varOntheFlyLevel" class="com.xie.learn.logback.MyPropertyDefiner">
+    <age>11</age>
+</define>
+<logger name="com.xie.learn.logback.DefineVarOntheFly" level="${varOntheFlyLevel}" additivity="false">
+    <appender-ref ref="STDOUT"/>
+</logger>
+----
+NOTE: 详细参见MyPropertyDefiner.java
+
+== 使用条件语句
+NOTE: 需要Janino library
+
+[.lead]
+要点
+
+* property("k")只能是context或者系统可访问的属性，property可简写为##p("k")##，如果未定义，返回空字符串
+* isDefined()检查变量是否定义
+* isNull()检查属性是否为NULL
+* 其他使用Java语法进行判断，甚至可以##调用函数方法##
+* 可签到if else
+* 不可严重依赖条件判断
+
+[.lead]
+例子
+
+[source,xml]
+----
+<configuration debug="true">
+  <if condition='property("HOSTNAME").##contains##("torino")'>
+    <then>
+      <appender name="CON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+          <pattern>%d %-5level %logger{35} - %msg %n</pattern>
+        </encoder>
+      </appender>
+      <root>
+        <appender-ref ref="CON" />
+      </root>
+    </then>
+  </if>
+</configuration>
+----
+
+== 从JNDI中获取变量
+[source,xml]
+----
+<insertFromJNDI env-entry-name="java:comp/env/appName" as="appName" />
+----
+
+== 包含其他配置文件
+NOTE: Joran支持
+但是被包含的配置文件必须是<included></included>标签包裹
+
+[source,xml]
+----
+<include file="src/main/java/chapters/configuration/includedConfig.xml"/>
+----
+includedConfig.xml
+[source,xml]
+----
+<included>
+  <appender name="includedConsole" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>"%d - %m%n"</pattern>
+    </encoder>
+  </appender>
+</included>
+----
+* 除了file属性，还可以指定
+* resource从类路径获取
+* url通过http方式获取
+
+== 添加监听器
+[.lead]
+监听在logback生命周期里产生的事件 ##LoggerContextListener##接口的实例
+
+添加监听器
+[source,xml]
+----
+<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+----
+* LevelChangePropagator +
+将对logback-class的level属性的改变代理给java.util.logging框架，此代理会消除禁用log语句的性能影响
