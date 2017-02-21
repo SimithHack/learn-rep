@@ -1,0 +1,37 @@
+= 大标题
+作者名称;
+文档类型，一本书的方式，有目录结构，还可以是html
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+[introduction]
+= API简介
+简介内容，对这个API功能的描述
+[getting-started]
+= 开始文档编写
+[getting-started-running-the-service]
+== 获取所有书目录
+获取所有图书馆计算机类型的书目
+[source,java]
+----
+//java代码的例子
+String str = new String();
+System.out.println(str);
+----
+其他的例子，bash方式的代码
+[source,bash]
+----
+$ cd samples/rest-notes-spring-data-rest
+$ ./mvnw clean package
+$ java -jar target/*.jar
+----
+=== 请求接口
+include::{snippets}/book/http-request.adoc[]
+=== 响应
+include::{snippets}/book/http-response.adoc[]
+include::{snippets}/book/response-fields.adoc[]
+

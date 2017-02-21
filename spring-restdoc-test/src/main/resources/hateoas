@@ -1,0 +1,11 @@
+HATEOAS
+    https://en.wikipedia.org/wiki/HATEOAS
+    是Hypermedia As The Engine Of Application State的缩写 使用超媒体作为应用程序状态引擎
+    特点：
+        a client interacts with a network application entirely through hypermedia provided
+        dynamically by application servers
+        客户端通过应用服务器动态产生的超媒体进行交互，客户端预先是不知道怎么和服务器交互,一切都是runtime
+        A client does not need to understand every media type and communication mechanism offered by the server.
+        客户端不需要了解每个媒体类型也不需要了解服务器提供的交互机制
+    实现：
+        spring Hateoas
