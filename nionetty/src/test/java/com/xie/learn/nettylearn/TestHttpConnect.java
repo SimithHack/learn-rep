@@ -2,8 +2,7 @@ package com.xie.learn.nettylearn;
 
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -21,7 +20,7 @@ public class TestHttpConnect {
     @Test
     public void testHttpConnect() throws URISyntaxException, IOException {
         // Prepare the HTTP request.
-        String host = "http://localhost:20300/login?username=test5&password=123456";
+        String host = "http://192.168.1.11:20300/login?username=test5&password=123456";
         HttpPost httpPost = new HttpPost(host);
         HttpClient httpClient = new DefaultHttpClient();
         HttpResponse response = httpClient.execute(httpPost);
