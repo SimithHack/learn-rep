@@ -2,16 +2,23 @@ package com.xie.learn.springamqp.config;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.LocalizedQueueConnectionFactory;
 import org.springframework.amqp.rabbit.connection.SimpleRoutingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -164,6 +171,57 @@ public class RabbitConfiguration {
      */
     @Bean
     public AmqpTemplate amqpTemplate(){
-        return rabbitTemplate();
+        /**
+         * 为amqptemplate配置重试功能，即在连接失败后，尝试重新连接
+         */
+        RetryTemplate retryTemplate = new RetryTemplate();
+        ExponentialBackOffPolicy policy = new ExponentialBackOffPolicy();
+        policy.setInitialInterval(500);
+        policy.setMultiplier(10.0);
+        policy.setMaxInterval(10000);
+        retryTemplate.setBackOffPolicy(policy);
+        final RabbitTemplate amqpTemplate = rabbitTemplate();
+        amqpTemplate.setRetryTemplate(retryTemplate);
+
+        /**
+         * 还支持重试回调函数和恢复连接后的回调
+         */
+        try {
+            retryTemplate.execute(
+            new RetryCallback<Object, Throwable>() {
+                @Override
+                public Object doWithRetry(RetryContext retryContext) throws Throwable {
+                    //负责，正常的逻辑处理，比如此时我们发送消息
+                    retryContext.setAttribute("message", "some info or MessageObject");
+                    return null;
+                }
+            }, new RecoveryCallback<Object>() {
+                @Override
+                public Object recover(RetryContext retryContext) throws Exception {
+                    //负责在连接失败后，重新尝试的逻辑，这里可以使用在上一个回调中房子retryContext里的属性
+                    return null;
+                }
+            });
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        //设置事务后，可以在txCommit()方法上检测异常，但是异常显著影响性能，如果只是为了达到检测异常，需要适当考虑
+        //因为可以在ConnectionFactory上设置connectionListener来达到同样的目的
+        amqpTemplate.setChannelTransacted(true);
+
+        //amqptemplate支持 Publisher Confirms和Returns
+        amqpTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
+            @Override
+            public void returnedMessage(Message message, int i, String s, String s1, String s2) {
+
+            }
+        });
+        amqpTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
+            @Override
+            public void confirm(CorrelationData correlationData, boolean b, String s) {
+
+            }
+        });
+        return amqpTemplate;
     }
 }
