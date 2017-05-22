@@ -1,11 +1,15 @@
 package com.xie.learn.springamqp.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,14 +20,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfiguration {
     /**
+     * 日志
+     */
+    private Logger logger = LoggerFactory.getLogger(RabbitConfiguration.class);
+    /**
      * 连接工厂
      * @return
      */
     @Bean
     public ConnectionFactory connectionFactory(){
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("172.16.132.145");
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("192.168.233.128");
         connectionFactory.setUsername("admin");
         connectionFactory.setPassword("admin");
+        connectionFactory.setVirtualHost("usercenter-api-service");
+        connectionFactory.setCacheMode(CachingConnectionFactory.CacheMode.CHANNEL);
         return connectionFactory;
     }
 
@@ -42,7 +52,9 @@ public class RabbitConfiguration {
      */
     @Bean
     public RabbitTemplate rabbitTemplate() {
-        return new RabbitTemplate(connectionFactory());
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+        rabbitTemplate.setMessageConverter(apiMeesageConverter());
+        return rabbitTemplate;
     }
 
     /**
@@ -52,5 +64,13 @@ public class RabbitConfiguration {
     @Bean
     public AmqpTemplate amqpTemplate(){
         return rabbitTemplate();
+    }
+    /**
+     * 消息转换
+     * @return
+     */
+    @Bean
+    public MessageConverter apiMeesageConverter(){
+        return new Jackson2JsonMessageConverter();
     }
 }
